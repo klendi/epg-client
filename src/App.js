@@ -2,8 +2,10 @@ import React, { useState } from 'react'
 import Navbar from './components/NavBarComponent'
 import { Container, Button } from 'react-bootstrap'
 import axios from 'axios'
+import xml2js from 'xml2js'
 
 function App() {
+  const parser = new xml2js.Parser()
   const [success, setSuccess] = useState(false)
 
   const handleFileChosen = file => {
@@ -16,19 +18,21 @@ function App() {
   const handleFileRead = () => {
     const content = fileReader.result
     console.log('read the file')
-    console.log(content)
 
-    // axios
-    //   .post('http://localhost:5000/epg', {
-    //     data: fileReader.result
-    //   })
-    //   .then(response => {
-    //     console.log(response)
-    setSuccess(true)
-    //   })
-    //   .catch(err => {
-    //     throw new Error(err)
-    //   })
+    parser.parseString(content, (err, result) => {
+      if (err) throw new Error(err)
+      console.log(result)
+
+      axios
+        .post('http://localhost:5001/epg', result)
+        .then(response => {
+          console.log(response)
+          setSuccess(true)
+        })
+        .catch(err => {
+          throw new Error(err)
+        })
+    })
   }
 
   return (
